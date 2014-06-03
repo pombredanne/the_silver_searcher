@@ -19,8 +19,8 @@ typedef struct {
     int ackmate;
     pcre *ackmate_dir_filter;
     pcre_extra *ackmate_dir_filter_extra;
-    int after;
-    int before;
+    size_t after;
+    size_t before;
     enum case_behavior casing;
     const char *file_search_string;
     int match_files;
@@ -55,6 +55,7 @@ typedef struct {
     int search_hidden_files;
     int search_stream; /* true if tail -F blah | ag */
     int stats;
+    size_t stream_line_num; /* This should totally not be in here */
     ino_t stdout_inode;
     char *query;
     int query_len;
@@ -68,10 +69,13 @@ typedef struct {
 /* global options. parse_options gives it sane values, everything else reads from it */
 cli_options opts;
 
-void init_options();
-void parse_options(int argc, char **argv, char **base_paths[], char **paths[]);
-void cleanup_options();
+typedef struct option option_t;
 
-void usage();
+void usage(void);
+void print_version(void);
+
+void init_options(void);
+void parse_options(int argc, char **argv, char **base_paths[], char **paths[]);
+void cleanup_options(void);
 
 #endif

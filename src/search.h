@@ -4,15 +4,16 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <pcre.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #ifdef _WIN32
-# include <windows.h>
+#include <windows.h>
 #else
-# include <sys/mman.h>
+#include <sys/mman.h>
 #endif
 #include <sys/stat.h>
 #include <unistd.h>
@@ -44,9 +45,9 @@ pthread_mutex_t work_queue_mtx;
 
 
 /* For symlink loop detection */
-#define SYMLOOP_ERROR   (-1)
-#define SYMLOOP_OK      (0)
-#define SYMLOOP_LOOP    (1)
+#define SYMLOOP_ERROR (-1)
+#define SYMLOOP_OK (0)
+#define SYMLOOP_LOOP (1)
 
 typedef struct {
     dev_t dev;
@@ -60,12 +61,12 @@ typedef struct {
 
 symdir_t *symhash;
 
-void search_buf(const char *buf, const int buf_len,
+void search_buf(const char *buf, const size_t buf_len,
                 const char *dir_full_path);
 void search_stream(FILE *stream, const char *path);
 void search_file(const char *file_full_path);
 
-void *search_file_worker();
+void *search_file_worker(void *i);
 
 void search_dir(ignores *ig, const char *base_path, const char *path, const int depth);
 

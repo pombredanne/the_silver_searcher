@@ -2,8 +2,8 @@
 
 A code searching tool similar to `ack`, with a focus on speed.
 
-<a href="https://floobits.com/r/ggreer/the_silver_searcher/redirect">
-  <img alt="Floobits status" width="80" height="40" src="https://floobits.com/r/ggreer/the_silver_searcher.png" />
+<a href="https://floobits.com/ggreer/ag/redirect">
+  <img alt="Floobits status" width="100" height="40" src="https://floobits.com/ggreer/ag.png" />
 </a>
 
 
@@ -12,7 +12,7 @@ A code searching tool similar to `ack`, with a focus on speed.
 * It searches code about 3–5× faster than `ack`.
 * It ignores file patterns from your `.gitignore` and `.hgignore`.
 * If there are files in your source repo you don't want to search, just add their patterns to a `.agignore` file. \*cough\* extern \*cough\*
-* The command name is 33% shorter than `ack`!
+* The command name is 33% shorter than `ack`, and all keys are on the home row!
 
 
 ## How is it so fast? ##
@@ -29,11 +29,11 @@ I've written several blog posts showing how I've improved performance. These inc
 
 ## Installation ##
 
-Gentoo:
+### Gentoo
 
     emerge the_silver_searcher
 
-OS X:
+### OS X
 
     brew install the_silver_searcher
 
@@ -41,57 +41,79 @@ or
 
     port install the_silver_searcher
 
-ArchLinux:
+### Arch Linux
 
     pacman -S the_silver_searcher
 
-FreeBSD:
+### Debian unstable
 
-Use either of the following commands depending on which [package management tool](http://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/ports.html) your system is configured for:
+    apt-get install silversearcher-ag
 
-    pkg add the_silver_searcher
+### Ubuntu 13.10 or later
+
+    apt-get install silversearcher-ag
+
+### FreeBSD
+
+    pkg install the_silver_searcher
 
 or
 
-    pkg_add the_silver_searcher
+    pkg_add -r the_silver_searcher
 
-To build Ag from source on FreeBSD:
+To build from source on FreeBSD:
 
     make -C /usr/ports/textproc/the_silver_searcher install clean
 
+### OpenBSD
+
+    pkg_add the_silver_searcher
+
+To build from source on OpenBSD:
+
+    cd /usr/ports/textproc/the_silver_searcher && make install
+
+
 If you want a CentOS rpm or Ubuntu deb, take a look at [Vikram Dighe's packages](http://swiftsignal.com/packages/).
 
-Debian unstable:
-
-    apt-get install silversearcher-ag
-
-Ubuntu 13.10 or later:
-
-    apt-get install silversearcher-ag
-
-Ubuntu 13.04:
-
-    apt-get install software-properties-common # (if required)
-    apt-add-repository ppa:mizuno-as/silversearcher-ag
-    apt-get update
-    apt-get install silversearcher-ag
 
 ## Building from source ##
 
 1. Install dependencies (Automake, pkg-config, PCRE, LZMA):
-    * Ubuntu: `apt-get install -y automake pkg-config libpcre3-dev zlib1g-dev liblzma-dev`
+    * Ubuntu:
+
+            apt-get install -y automake pkg-config libpcre3-dev zlib1g-dev liblzma-dev
+
+    * Fedora:
+
+            yum -y install pkgconfig automake gcc zlib-devel pcre-devel xz-devel
+
+    * CentOS:
+
+            yum -y groupinstall "Development Tools"
+            yum -y install pcre-devel xz-devel
+
     * OS X:
-        - Install [homebrew](http://mxcl.github.com/homebrew/), then `brew install automake pkg-config pcre`
-        - Or install [macports](http://macports.org), then `port install automake pkgconfig pcre`
+
+            brew install automake pkg-config pcre
+        or
+
+            port install automake pkgconfig pcre
+
     * Windows: It's complicated. See [this wiki page](https://github.com/ggreer/the_silver_searcher/wiki/Windows).
+
 2. Run the build script (which just runs aclocal, automake, etc):
-    * `./build.sh`
+
+        ./build.sh
+
+  On Windows:
+
+        mingw32-make -f Makefile.w32
+
 3. Make install:
-    * `sudo make install`
 
-On windows:
+        sudo make install
 
-    mingw32-make -f Makefile.w32
 
 
 ## Current development status ##
@@ -125,6 +147,7 @@ You can use use [ag.el][] as an Emacs fronted to Ag.
 
 [ag.el]: https://github.com/Wilfred/ag.el
 
+
 ## Contributing ##
 
 I like when people send pull requests. It validates my existence. If you want to help out, check the [issue list](https://github.com/ggreer/the_silver_searcher/issues?sort=updated&state=open) or search the codebase for `TODO`. Don't worry if you lack experience writing C. If I think a pull request isn't ready to be merged, I'll give feedback in comments. Once everything looks good, I'll comment on your pull request with a cool animated gif and hit the merge button.
@@ -135,7 +158,6 @@ I like when people send pull requests. It validates my existence. If you want to
 A special thanks goes out to Alex Davies. He has given me some excellent recommendations to improve Ag. Many of these things are still on my list:
 
 * Optimizations
-  * Profile `read()` against `mmap()`. Remember that's `read()` not `fread()`.
   * Write a benchmarking script that tweaks various settings to find what's fastest.
 * Features
   * Behave better when matching in files with really long lines.
@@ -148,7 +170,7 @@ A special thanks goes out to Alex Davies. He has given me some excellent recomme
 
 ## Other stuff you might like ##
 
-* [Ack](https://github.com/petdance/ack) - Better than grep
+* [Ack](https://github.com/petdance/ack) - Better than grep. Without Ack, Ag would not exist.
 * [AckMate](https://github.com/protocool/AckMate) - An ack-powered replacement for TextMate's slow built-in search.
 * [ack.vim](https://github.com/mileszs/ack.vim)
 * [ag.vim]( https://github.com/rking/ag.vim)

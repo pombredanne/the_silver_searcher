@@ -14,9 +14,11 @@
 #define getc_unlocked(x) getc(x)
 #endif
 
-#define CHECK_AND_RETURN(ptr) \
-if (ptr == NULL) { die("Memory allocation failed."); }\
-return ptr;
+#define CHECK_AND_RETURN(ptr)             \
+    if (ptr == NULL) {                    \
+        die("Memory allocation failed."); \
+    }                                     \
+    return ptr;
 
 void *ag_malloc(size_t size) {
     void *ptr = malloc(size);
@@ -61,7 +63,7 @@ void generate_skip_lookup(const char *find, size_t f_len, size_t skip_lookup[], 
 }
 
 /* Boyer-Moore-Horspool strstr */
-const char* boyer_moore_strnstr(const char *s, const char *find, const size_t s_len, const size_t f_len, const size_t skip_lookup[]) {
+const char *boyer_moore_strnstr(const char *s, const char *find, const size_t s_len, const size_t f_len, const size_t skip_lookup[]) {
     size_t i;
     size_t pos = 0;
 
@@ -83,7 +85,7 @@ const char* boyer_moore_strnstr(const char *s, const char *find, const size_t s_
 }
 
 /* Copy-pasted from above. Yes I know this is bad. One day I might even fix it. */
-const char* boyer_moore_strncasestr(const char *s, const char *find, const size_t s_len, const size_t f_len, const size_t skip_lookup[]) {
+const char *boyer_moore_strncasestr(const char *s, const char *find, const size_t s_len, const size_t f_len, const size_t skip_lookup[]) {
     size_t i;
     size_t pos = 0;
 
@@ -104,18 +106,18 @@ const char* boyer_moore_strncasestr(const char *s, const char *find, const size_
     return NULL;
 }
 
-strncmp_fp get_strstr(cli_options opts) {
+strncmp_fp get_strstr(enum case_behavior casing) {
     strncmp_fp ag_strncmp_fp = &boyer_moore_strnstr;
 
-    if (opts.casing == CASE_INSENSITIVE) {
+    if (casing == CASE_INSENSITIVE) {
         ag_strncmp_fp = &boyer_moore_strncasestr;
     }
 
     return ag_strncmp_fp;
 }
 
-int invert_matches(match matches[], int matches_len, const int buf_len) {
-    int i;
+size_t invert_matches(match matches[], size_t matches_len, const size_t buf_len) {
+    size_t i;
 
     if (matches_len == 0) {
         matches[0].start = 0;
@@ -131,14 +133,16 @@ int invert_matches(match matches[], int matches_len, const int buf_len) {
     if (matches[0].start == 0) {
         for (i = 0; i < matches_len; i++) {
             matches[i].start = matches[i].end;
-            matches[i].end = matches[i+1].start;
+            matches[i].end = matches[i + 1].start;
         }
         matches_len--;
     } else {
-        for (i = matches_len; i >= 0; i--) {
+        for (i = matches_len; i > 0; i--) {
             matches[i].end = matches[i].start;
-            matches[i].start = i == 0 ? 0 : matches[i-1].end;
+            matches[i].start = matches[i - 1].end;
         }
+        matches[0].end = matches[0].start;
+        matches[0].start = 0;
     }
 
     matches[matches_len].end = buf_len;
@@ -164,11 +168,11 @@ void compile_study(pcre **re, pcre_extra **re_extra, char *q, const int pcre_opt
 }
 
 /* This function is very hot. It's called on every file. */
-int is_binary(const void* buf, const int buf_len) {
-    int suspicious_bytes = 0;
-    int total_bytes = buf_len > 512 ? 512 : buf_len;
+int is_binary(const void *buf, const size_t buf_len) {
+    size_t suspicious_bytes = 0;
+    size_t total_bytes = buf_len > 512 ? 512 : buf_len;
     const unsigned char *buf_c = buf;
-    int i;
+    size_t i;
 
     if (buf_len == 0) {
         return 0;
@@ -185,14 +189,14 @@ int is_binary(const void* buf, const int buf_len) {
             return 1;
         } else if ((buf_c[i] < 7 || buf_c[i] > 14) && (buf_c[i] < 32 || buf_c[i] > 127)) {
             /* UTF-8 detection */
-            if (buf_c[i] > 191 && buf_c[i] < 224 && i + 1 < total_bytes) {
+            if (buf_c[i] > 193 && buf_c[i] < 224 && i + 1 < total_bytes) {
                 i++;
-                if (buf_c[i] < 192) {
+                if (buf_c[i] > 127 && buf_c[i] < 192) {
                     continue;
                 }
-            } else if (buf_c[i] > 223 && buf_c[i] < 239 && i + 2 < total_bytes) {
+            } else if (buf_c[i] > 223 && buf_c[i] < 240 && i + 2 < total_bytes) {
                 i++;
-                if (buf_c[i] < 192 && buf_c[i + 1] < 192) {
+                if (buf_c[i] > 127 && buf_c[i] < 192 && buf_c[i + 1] > 127 && buf_c[i + 1] < 192) {
                     i++;
                     continue;
                 }
@@ -213,7 +217,7 @@ int is_binary(const void* buf, const int buf_len) {
     return 0;
 }
 
-int is_regex(const char* query) {
+int is_regex(const char *query) {
     char regex_chars[] = {
         '$',
         '(',
@@ -233,7 +237,7 @@ int is_regex(const char* query) {
     return (strpbrk(query, regex_chars) != NULL);
 }
 
-int is_fnmatch(const char* filename) {
+int is_fnmatch(const char *filename) {
     char fnmatch_chars[] = {
         '!',
         '*',
@@ -246,7 +250,7 @@ int is_fnmatch(const char* filename) {
     return (strpbrk(filename, fnmatch_chars) != NULL);
 }
 
-int binary_search(const char* needle, char **haystack, int start, int end) {
+int binary_search(const char *needle, char **haystack, int start, int end) {
     int mid;
     int rc;
 
@@ -271,7 +275,7 @@ static int wordchar_table[256];
 void init_wordchar_table(void) {
     int i;
     for (i = 0; i < 256; ++i) {
-        char ch = (char) i;
+        char ch = (char)i;
         wordchar_table[i] =
             ('a' <= ch && ch <= 'z') ||
             ('A' <= ch && ch <= 'Z') ||
@@ -281,10 +285,10 @@ void init_wordchar_table(void) {
 }
 
 int is_wordchar(char ch) {
-    return wordchar_table[(unsigned char) ch];
+    return wordchar_table[(unsigned char)ch];
 }
 
-int is_lowercase(const char* s) {
+int is_lowercase(const char *s) {
     int i;
     for (i = 0; s[i] != '\0'; i++) {
         if (!isascii(s[i]) || isupper(s[i])) {
@@ -378,7 +382,7 @@ char *fgetln(FILE *fp, size_t *lenp) {
 
     flockfile(fp);
     while ((c = getc_unlocked(fp)) != EOF) {
-        if (!buf || len > used) {
+        if (!buf || len >= used) {
             size_t nsize;
             char *newbuf;
             nsize = used + BUFSIZ;
@@ -440,14 +444,32 @@ ssize_t getline(char **lineptr, size_t *n, FILE *stream) {
 }
 #endif
 
+#ifndef HAVE_REALPATH
+char *realpath(const char *path, char *resolved_path) {
+    char *p;
+    char tmp[MAX_PATH + 1];
+    strncpy(tmp, path, sizeof(tmp) - 1);
+    p = tmp;
+    while (*p) {
+        if (*p == '/') {
+            *p = '\\';
+        }
+        p++;
+    }
+    return _fullpath(resolved_path, tmp, MAX_PATH);
+}
+#endif
+
 #ifndef HAVE_STRNDUP
 /* Apache-licensed implementation of strndup for OS
  * taken from http://source-android.frandroid.com/dalvik/tools/dmtracedump/CreateTestTrace.c
  * modified to check for malloc() failure
  */
 char *strndup(const char *src, size_t len) {
-    char *dest = (char *) malloc(len + 1);
-    if (!dest) return NULL;
+    char *dest = (char *)malloc(len + 1);
+    if (!dest) {
+        return NULL;
+    }
     strncpy(dest, src, len);
     dest[len] = 0;
     return dest;
@@ -459,7 +481,7 @@ int vasprintf(char **ret, const char *fmt, va_list args) {
     int rv;
     *ret = NULL;
     va_list args2;
-    /* vsnprintf can destroy args, so we need to copy it for the second call */
+/* vsnprintf can destroy args, so we need to copy it for the second call */
 #ifdef __va_copy
     /* non-standard macro, but usually exists */
     __va_copy(args2, args);
