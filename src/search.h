@@ -6,7 +6,6 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <pcre.h>
-#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,14 +19,20 @@
 
 #include "config.h"
 
+#ifdef HAVE_PTHREAD_H
+#include <pthread.h>
+#endif
+
+#include "decompress.h"
 #include "ignore.h"
 #include "log.h"
 #include "options.h"
 #include "print.h"
-#include "util.h"
 #include "uthash.h"
+#include "util.h"
 
-size_t skip_lookup[256];
+size_t alpha_skip_lookup[256];
+size_t *find_skip_lookup;
 
 struct work_queue_t {
     char *path;
@@ -39,7 +44,6 @@ work_queue_t *work_queue;
 work_queue_t *work_queue_tail;
 int done_adding_files;
 pthread_cond_t files_ready;
-pthread_mutex_t print_mtx;
 pthread_mutex_t stats_mtx;
 pthread_mutex_t work_queue_mtx;
 
@@ -68,6 +72,6 @@ void search_file(const char *file_full_path);
 
 void *search_file_worker(void *i);
 
-void search_dir(ignores *ig, const char *base_path, const char *path, const int depth);
+void search_dir(ignores *ig, const char *base_path, const char *path, const int depth, dev_t original_dev);
 
 #endif

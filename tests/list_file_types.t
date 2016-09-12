@@ -1,6 +1,6 @@
 Setup:
 
-  $ source $TESTDIR/setup.sh
+  $ . $TESTDIR/setup.sh
 
 Language types are output:
 
@@ -18,20 +18,32 @@ Language types are output:
     --batch
         .bat  .cmd
   
+    --bitbake
+        .bb  .bbappend  .bbclass  .inc
+  
+    --bro
+        .bro  .bif
+  
     --cc
         .c  .h  .xs
   
     --cfmx
         .cfc  .cfm  .cfml
   
+    --chpl
+        .chpl
+  
     --clojure
-        .clj
+        .clj  .cljs  .cljc  .cljx
   
     --coffee
-        .coffee
+        .coffee  .cjsx
   
     --cpp
-        .cpp  .cc  .cxx  .m  .hpp  .hh  .h  .hxx
+        .cpp  .cc  .C  .cxx  .m  .hpp  .hh  .h  .H  .hxx
+  
+    --crystal
+        .cr  .ecr
   
     --csharp
         .cs
@@ -39,17 +51,35 @@ Language types are output:
     --css
         .css
   
+    --cython
+        .pyx  .pxd  .pxi
+  
     --delphi
         .pas  .int  .dfm  .nfm  .dof  .dpk  .dproj  .groupproj  .bdsgroup  .bdsproj
+  
+    --ebuild
+        .ebuild  .eclass
   
     --elisp
         .el
   
+    --elixir
+        .ex  .eex  .exs
+  
     --erlang
         .erl  .hrl
   
+    --factor
+        .factor
+  
     --fortran
         .f  .f77  .f90  .f95  .f03  .for  .ftn  .fpp
+  
+    --fsharp
+        .fs  .fsi  .fsx
+  
+    --gettext
+        .po  .pot  .mo
   
     --go
         .go
@@ -57,29 +87,47 @@ Language types are output:
     --groovy
         .groovy  .gtmpl  .gpp  .grunit
   
+    --haml
+        .haml
+  
     --haskell
         .hs  .lhs
   
     --hh
         .h
   
-    --haml
-        .haml
-  
     --html
         .htm  .html  .shtml  .xhtml
+  
+    --ini
+        .ini
+  
+    --jade
+        .jade
   
     --java
         .java  .properties
   
     --js
-        .js
+        .js  .jsx  .vue
+  
+    --json
+        .json
   
     --jsp
         .jsp  .jspx  .jhtm  .jhtml
   
-    --json
-        .json
+    --julia
+        .jl
+  
+    --kotlin
+        .kt
+  
+    --less
+        .less
+  
+    --liquid
+        .liquid
   
     --lisp
         .lisp  .lsp
@@ -90,14 +138,29 @@ Language types are output:
     --m4
         .m4
   
-    --matlab
-        .m
-  
     --make
         .Makefiles  .mk  .mak
   
+    --mako
+        .mako
+  
+    --markdown
+        .markdown  .mdown  .mdwn  .mkdn  .mkd  .md
+  
     --mason
         .mas  .mhtml  .mpl  .mtxt
+  
+    --matlab
+        .m
+  
+    --mathematica
+        .m  .wl
+  
+    --mercury
+        .m  .moo
+  
+    --nim
+        .nim
   
     --objc
         .m  .h
@@ -106,7 +169,7 @@ Language types are output:
         .mm  .h
   
     --ocaml
-        .ml  .mli
+        .ml  .mli  .mll  .mly
   
     --octave
         .m
@@ -120,17 +183,38 @@ Language types are output:
     --php
         .php  .phpt  .php3  .php4  .php5  .phtml
   
+    --pike
+        .pike  .pmod
+  
     --plone
-        .pt  .cpt  .metadata  .cpy  .py
+        .pt  .cpt  .metadata  .cpy  .py  .xml  .zcml
+  
+    --puppet
+        .pp
   
     --python
         .py
   
+    --qml
+        .qml
+  
+    --racket
+        .rkt  .ss  .scm
+  
     --rake
-        .Rakefiles
+        .Rakefile
+  
+    --restructuredtext
+        .rst
   
     --rs
         .rs
+  
+    --r
+        .R  .Rmd  .Rnw  .Rtex  .Rrst
+  
+    --rdoc
+        .rdoc
   
     --ruby
         .rb  .rhtml  .rjs  .rxml  .erb  .rake  .spec
@@ -138,11 +222,11 @@ Language types are output:
     --rust
         .rs
   
-    --sass
-        .sass  .scss
-  
     --salt
         .sls
+  
+    --sass
+        .sass  .scss
   
     --scala
         .scala
@@ -151,13 +235,22 @@ Language types are output:
         .scm  .ss
   
     --shell
-        .sh  .bash  .csh  .tcsh  .ksh  .zsh
+        .sh  .bash  .csh  .tcsh  .ksh  .zsh  .fish
   
     --smalltalk
         .st
   
+    --sml
+        .sml  .fun  .mlb  .sig
+  
     --sql
         .sql  .ctl
+  
+    --stylus
+        .styl
+  
+    --swift
+        .swift
   
     --tcl
         .tcl  .itcl  .itk
@@ -168,9 +261,42 @@ Language types are output:
     --tt
         .tt  .tt2  .ttml
   
+    --toml
+        .toml
+  
+    --ts
+        .ts  .tsx
+  
+    --vala
+        .vala  .vapi
+  
     --vb
         .bas  .cls  .frm  .ctl  .vb  .resx
   
+    --velocity
+        .vm  .vtl  .vsl
+  
     --verilog
         .v  .vh  .sv
+  
+    --vhdl
+        .vhd  .vhdl
+  
+    --vim
+        .vim
+  
+    --wix
+        .wxi  .wxs
+  
+    --wsdl
+        .wsdl
+  
+    --wadl
+        .wadl
+  
+    --xml
+        .xml  .dtd  .xsl  .xslt  .ent
+  
+    --yaml
+        .yaml  .yml
   

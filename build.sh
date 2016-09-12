@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd `dirname $0`
+cd "$(dirname "$0")" || exit 1
 
 AC_SEARCH_OPTS=""
 # For those of us with pkg-config and other tools in /usr/local
@@ -13,9 +13,10 @@ then
     AC_SEARCH_OPTS="-I /usr/local/share/aclocal"
 fi
 
+# shellcheck disable=2086
 aclocal $AC_SEARCH_OPTS && \
 autoconf && \
 autoheader && \
 automake --add-missing && \
 ./configure "$@" && \
-make
+make -j4

@@ -1,10 +1,12 @@
 Setup:
 
-  $ source $TESTDIR/setup.sh
+  $ . $TESTDIR/setup.sh
   $ mkdir -p ./a/b/c
-  $ echo 'whatever1' > ./a/b/c/blah.yml
-  $ echo 'whatever2' > ./a/b/foo.yml
-  $ echo 'a/b/*.yml' > ./.gitignore
+  $ printf 'whatever1\n' > ./a/b/c/blah.yml
+  $ printf 'whatever2\n' > ./a/b/foo.yml
+  $ printf 'a/b/foo.yml\n' > ./.gitignore
+# TODO: have this work instead of the above
+# $ printf 'a/b/*.yml\n' > ./.gitignore
 
 Ignore foo.yml but not blah.yml:
 
@@ -13,6 +15,6 @@ Ignore foo.yml but not blah.yml:
 
 Dont ignore anything (unrestricted search):
 
-  $ ag -u whatever .
+  $ ag -u whatever . | sort
   a/b/c/blah.yml:1:whatever1
   a/b/foo.yml:1:whatever2
