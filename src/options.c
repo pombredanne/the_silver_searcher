@@ -57,7 +57,8 @@ Output Options:\n\
                           (Enabled by default)\n\
   -C --context [LINES]    Print lines before and after matches (Default: 2)\n\
      --[no]group          Same as --[no]break --[no]heading\n\
-  -g PATTERN              Print filenames matching PATTERN\n\
+  -g --filename-pattern PATTERN\n\
+                          Print filenames matching PATTERN\n\
   -l --files-with-matches Only print filenames that contain matches\n\
                           (don't print the matching lines)\n\
   -L --files-without-matches\n\
@@ -91,18 +92,18 @@ Search Options:\n\
      --ignore-dir NAME    Alias for --ignore for compatibility with ack.\n\
   -m --max-count NUM      Skip the rest of a file after NUM matches (Default: 10,000)\n\
      --one-device         Don't follow links to other devices.\n\
-  -p --path-to-agignore STRING\n\
-                          Use .agignore file at STRING\n\
+  -p --path-to-ignore STRING\n\
+                          Use .ignore file at STRING\n\
   -Q --literal            Don't parse PATTERN as a regular expression\n\
   -s --case-sensitive     Match case sensitively\n\
   -S --smart-case         Match case insensitively unless PATTERN contains\n\
                           uppercase characters (Enabled by default)\n\
      --search-binary      Search binary files for matches\n\
   -t --all-text           Search all text files (doesn't include hidden files)\n\
-  -u --unrestricted       Search all files (ignore .agignore, .gitignore, etc.;\n\
+  -u --unrestricted       Search all files (ignore .ignore, .gitignore, etc.;\n\
                           searches binary and hidden files as well)\n\
   -U --skip-vcs-ignores   Ignore VCS ignore files\n\
-                          (.gitignore, .hgignore, .svnignore; still obey .agignore)\n\
+                          (.gitignore, .hgignore; still obey .ignore)\n\
   -v --invert-match\n\
   -w --word-regexp        Only match whole words\n\
   -W --width NUM          Truncate match lines after NUM characters\n\
@@ -114,7 +115,9 @@ The search can be restricted to certain types of files. Example:\n\
   - Searches for 'needle' in files with suffix .htm, .html, .shtml or .xhtml.\n\
 \n\
 For a list of supported file types run:\n\
-  ag --list-file-types\n\n");
+  ag --list-file-types\n\n\
+ag was originally created by Geoff Greer. More information (and the latest release)\n\
+can be found at http://geoff.greer.fm/ag\n");
 }
 
 void print_version(void) {
@@ -144,6 +147,12 @@ void init_options(void) {
     opts.color_win_ansi = FALSE;
     opts.max_matches_per_file = 0;
     opts.max_search_depth = DEFAULT_MAX_SEARCH_DEPTH;
+#if defined(__APPLE__) || defined(__MACH__)
+    /* mamp() is slower than normal read() on macos. default to off */
+    opts.mmap = FALSE;
+#else
+    opts.mmap = TRUE;
+#endif
     opts.multiline = TRUE;
     opts.width = 0;
     opts.path_sep = '\n';
@@ -238,6 +247,7 @@ void parse_options(int argc, char **argv, char **base_paths[], char **paths[]) {
         { "debug", no_argument, NULL, 'D' },
         { "depth", required_argument, NULL, 0 },
         { "filename", no_argument, NULL, 0 },
+        { "filename-pattern", required_argument, NULL, 'g' },
         { "file-search-regex", required_argument, NULL, 'G' },
         { "files-with-matches", no_argument, NULL, 'l' },
         { "files-without-matches", no_argument, NULL, 'L' },
@@ -257,20 +267,32 @@ void parse_options(int argc, char **argv, char **base_paths[], char **paths[]) {
         { "literal", no_argument, NULL, 'Q' },
         { "match", no_argument, &useless, 0 },
         { "max-count", required_argument, NULL, 'm' },
+        { "mmap", no_argument, &opts.mmap, TRUE },
         { "multiline", no_argument, &opts.multiline, TRUE },
-        /* "no-" is deprecated. Remove these eventually. */
-        { "no-numbers", no_argument, &opts.print_line_numbers, FALSE },
-        { "no-recurse", no_argument, NULL, 'n' },
+        /* Accept both --no-* and --no* forms for convenience/BC */
+        { "no-affinity", no_argument, &opts.use_thread_affinity, 0 },
         { "noaffinity", no_argument, &opts.use_thread_affinity, 0 },
+        { "no-break", no_argument, &opts.print_break, 0 },
         { "nobreak", no_argument, &opts.print_break, 0 },
+        { "no-color", no_argument, &opts.color, 0 },
         { "nocolor", no_argument, &opts.color, 0 },
+        { "no-filename", no_argument, NULL, 0 },
         { "nofilename", no_argument, NULL, 0 },
+        { "no-follow", no_argument, &opts.follow_symlinks, 0 },
         { "nofollow", no_argument, &opts.follow_symlinks, 0 },
+        { "no-group", no_argument, &group, 0 },
         { "nogroup", no_argument, &group, 0 },
+        { "no-heading", no_argument, &opts.print_path, PATH_PRINT_EACH_LINE },
         { "noheading", no_argument, &opts.print_path, PATH_PRINT_EACH_LINE },
+        { "no-mmap", no_argument, &opts.mmap, FALSE },
+        { "nommap", no_argument, &opts.mmap, FALSE },
+        { "no-multiline", no_argument, &opts.multiline, FALSE },
         { "nomultiline", no_argument, &opts.multiline, FALSE },
+        { "no-numbers", no_argument, &opts.print_line_numbers, FALSE },
         { "nonumbers", no_argument, &opts.print_line_numbers, FALSE },
+        { "no-pager", no_argument, NULL, 0 },
         { "nopager", no_argument, NULL, 0 },
+        { "no-recurse", no_argument, NULL, 'n' },
         { "norecurse", no_argument, NULL, 'n' },
         { "null", no_argument, NULL, '0' },
         { "numbers", no_argument, &opts.print_line_numbers, 2 },
@@ -280,7 +302,7 @@ void parse_options(int argc, char **argv, char **base_paths[], char **paths[]) {
         { "parallel", no_argument, &opts.parallel, 1 },
         { "passthrough", no_argument, &opts.passthrough, 1 },
         { "passthru", no_argument, &opts.passthrough, 1 },
-        { "path-to-agignore", required_argument, NULL, 'p' },
+        { "path-to-ignore", required_argument, NULL, 'p' },
         { "print0", no_argument, NULL, '0' },
         { "print-long-lines", no_argument, &opts.print_long_lines, 1 },
         { "recurse", no_argument, NULL, 'r' },
@@ -424,6 +446,7 @@ void parse_options(int argc, char **argv, char **base_paths[], char **paths[]) {
             case 'l':
                 needs_query = 0;
                 opts.print_filename_only = 1;
+                opts.print_path = PATH_PRINT_TOP;
                 break;
             case 'm':
                 opts.max_matches_per_file = atoi(optarg);
@@ -432,7 +455,8 @@ void parse_options(int argc, char **argv, char **base_paths[], char **paths[]) {
                 opts.recurse_dirs = 0;
                 break;
             case 'p':
-                opts.path_to_agignore = optarg;
+                opts.path_to_ignore = TRUE;
+                load_ignore_patterns(root_ignores, optarg);
                 break;
             case 'o':
                 opts.only_matching = 1;
@@ -502,11 +526,13 @@ void parse_options(int argc, char **argv, char **base_paths[], char **paths[]) {
                 } else if (strcmp(longopts[opt_index].name, "ignore") == 0) {
                     add_ignore_pattern(root_ignores, optarg);
                     break;
-                } else if (strcmp(longopts[opt_index].name, "nofilename") == 0) {
+                } else if (strcmp(longopts[opt_index].name, "no-filename") == 0 ||
+                           strcmp(longopts[opt_index].name, "nofilename") == 0) {
                     opts.print_path = PATH_PRINT_NOTHING;
                     opts.print_line_numbers = FALSE;
                     break;
-                } else if (strcmp(longopts[opt_index].name, "nopager") == 0) {
+                } else if (strcmp(longopts[opt_index].name, "no-pager") == 0 ||
+                           strcmp(longopts[opt_index].name, "nopager") == 0) {
                     out_fd = stdout;
                     opts.pager = NULL;
                     break;
@@ -644,7 +670,7 @@ void parse_options(int argc, char **argv, char **base_paths[], char **paths[]) {
 
     if (home_dir && !opts.search_all_files) {
         log_debug("Found user's home dir: %s", home_dir);
-        ag_asprintf(&ignore_file_path, "%s/%s", home_dir, ignore_pattern_files[0]);
+        ag_asprintf(&ignore_file_path, "%s/.agignore", home_dir);
         load_ignore_patterns(root_ignores, ignore_file_path);
         free(ignore_file_path);
     }
@@ -729,8 +755,13 @@ void parse_options(int argc, char **argv, char **base_paths[], char **paths[]) {
     }
 
     if (accepts_query && argc > 0) {
-        // use the provided query
-        opts.query = ag_strdup(argv[0]);
+        if (!needs_query && strlen(argv[0]) == 0) {
+            // use default query
+            opts.query = ag_strdup(".");
+        } else {
+            // use the provided query
+            opts.query = ag_strdup(argv[0]);
+        }
         argc--;
         argv++;
     } else if (!needs_query) {
